@@ -2,11 +2,10 @@ import React from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
 import { Formik, Form } from "formik";
-import * as Yup from "yup";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
-import useFetch from "@/hooks/use-fetch"; // 👈 use your custom hook
 import { BarLoader } from "react-spinners";
+import { useSigninController } from "@/controllers/signin.controller";
 
 const MdOutlineLogin = dynamic(
   () => import("react-icons/md").then((mod) => mod.MdOutlineLogin),
@@ -15,34 +14,8 @@ const MdOutlineLogin = dynamic(
 
 const Signin = () => {
   const router = useRouter();
-
-  const validationSchema = Yup.object({
-    email: Yup.string().email("Invalid email").required("Email is required"),
-    password: Yup.string().required("Password is required"),
-  });
-
-  const initialValues = {
-    email: "",
-    password: "",
-  };
-
-  // Hook for signin API
-  const { fetchData: signinUser, loading } = useFetch(
-    { url: "/auth/signin", method: "POST" },
-    { manual: true, successMessage: "Signin successful!" }
-  );
-
-  const handleSubmit = async (values) => {
-    try {
-      const res = await signinUser({ data: values, withCredentials: true });
-
-      if (res?.success) {
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const { validationSchema, initialValues, handleSubmit, loading } =
+    useSigninController();
 
   return (
     <>
@@ -51,6 +24,7 @@ const Signin = () => {
           <BarLoader width={"100%"} height={4} color="#07090d" />
         </div>
       )}
+
       <div className="text-center mt-2 space-y-5 max-w-md mx-auto">
         <div className="mx-auto mb-4 w-12 h-12 flex items-center justify-center rounded-xl bg-sky-100">
           <MdOutlineLogin className="text-3xl text-sky-500" />
@@ -105,19 +79,3 @@ const Signin = () => {
 };
 
 export default Signin;
-
-// ✅ Protect signin page from logged-in users
-export async function getServerSideProps(context) {
-  const token = context.req.cookies?.token;
-
-  if (token) {
-    return {
-      redirect: {
-        destination: "/dashboard",
-        permanent: false,
-      },
-    };
-  }
-
-  return { props: {} };
-}

@@ -1,81 +1,19 @@
 "use client";
-import React, { useState } from "react";
+import { Form, Formik } from "formik";
 import { useRouter } from "next/router";
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
-import axios from "axios";
-import toast from "react-hot-toast";
 import { BarLoader } from "react-spinners";
 
+import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Select from "@/components/Select";
-import Button from "@/components/Button";
-import { data } from "@/data/data";
+import { useSignupController } from "@/controllers/signup.controller";
 
 const SignupPage = () => {
   const router = useRouter();
-  const { countries, states, cities } = data;
 
-  const [loading, setLoading] = useState(false);
-  const [filteredStates, setFilteredStates] = useState([]);
-  const [filteredCities, setFilteredCities] = useState([]);
+  const { initialValues, validationSchema, handleSubmit, loading, countries, states, cities } =
+    useSignupController();
 
-  const initialValues = {
-    username: "",
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-    gender: "",
-    profilePic: "",
-    phone: "",
-    addressLine1: "",
-    addressLine2: "",
-    country: "",
-    state: "",
-    city: "",
-    pin: "",
-  };
-
-  const validationSchema = Yup.object({
-    username: Yup.string().required("Username is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
-    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
-    firstName: Yup.string().required("First name is required"),
-    lastName: Yup.string().required("Last name is required"),
-    gender: Yup.string().oneOf(["male", "female", "other"], "Select a valid gender").required("Gender is required"),
-    profilePic: Yup.string().url("Must be a valid URL"),
-    phone: Yup.string().required("Phone is required"),
-    addressLine1: Yup.string().required("Address Line 1 is required"),
-    country: Yup.string().required("Country is required"),
-    state: Yup.string().required("State is required"),
-    city: Yup.string().required("City is required"),
-    pin: Yup.string().required("PIN code is required"),
-  });
-
-  const handleSubmit = async (values) => {
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        values,
-        { withCredentials: true }
-      );
-
-      if (res?.data?.success) {
-        localStorage.setItem("pendingEmail", res.data.data.email);
-        toast.success("Signup successful! Please verify OTP");
-        router.push("/auth/verify-otp");
-      } else {
-        toast.error(res?.data?.message || "Signup failed");
-      }
-    } catch (error) {
-      console.error("Signup error:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <>
@@ -176,13 +114,3 @@ const SignupPage = () => {
 SignupPage.layout = "wide";
 export default SignupPage;
 
-// Redirect if already signed in
-export async function getServerSideProps(context) {
-  const token = context.req.cookies?.token;
-  if (token) {
-    return {
-      redirect: { destination: "/dashboard", permanent: false },
-    };
-  }
-  return { props: {} };
-}

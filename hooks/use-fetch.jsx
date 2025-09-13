@@ -1,18 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
-  withCredentials: true, // ✅ cookies will be sent automatically
+  withCredentials: true, // cookies will be sent automatically
 });
 
-const useFetch = (config = {}, options = { manual: false, successMessage: null }) => {
+const useFetch = (config = {}) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = useCallback(
+  const fn = useCallback(
     async (overrideConfig = {}) => {
       setLoading(true);
       setError(null);
@@ -23,10 +23,11 @@ const useFetch = (config = {}, options = { manual: false, successMessage: null }
           ...overrideConfig,
         });
 
-        setData(response.data);
+        setData(response?.data);
 
-        if (options.successMessage) {
-          toast.success(options.successMessage);
+        // Only show toast if backend sends a message
+        if (response?.data?.message) {
+          toast.success(response.data.message);
         }
 
         return response.data;
@@ -39,16 +40,11 @@ const useFetch = (config = {}, options = { manual: false, successMessage: null }
         setLoading(false);
       }
     },
-    [config, options.successMessage]
+    [config]
   );
 
-  useEffect(() => {
-    if (!options.manual) {
-      fetchData();
-    }
-  }, [fetchData, options.manual]);
-
-  return { data, error, loading, fetchData };
+  // No automatic fetch on mount
+  return { data, error, loading, fn };
 };
 
 export default useFetch;
