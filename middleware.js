@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
-  const token = req.cookies.get("token")?.value;
+  const token = req.cookies.get("token")?.value ;
   const resetToken = req.cookies.get("resetToken")?.value;
   const resetMailToken = req.cookies.get("resetMailToken")?.value;
   console.log(resetMailToken);

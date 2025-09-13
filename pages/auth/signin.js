@@ -12,6 +12,8 @@ const MdOutlineLogin = dynamic(
   { ssr: false }
 );
 
+const GoogleButton = dynamic(() => import("../../components/GoogleButton"), { ssr: false });
+
 const Signin = () => {
   const router = useRouter();
   const { validationSchema, initialValues, handleSubmit, loading } =
@@ -64,7 +66,16 @@ const Signin = () => {
           </Form>
         </Formik>
 
-        <p className="text-sm">
+        <div className="my-4 flex items-center justify-center">
+          <span className="text-gray-400 text-sm">or continue with</span>
+        </div>
+
+        {/* 🔹 Social Login Buttons */}
+        <div className="flex gap-3 justify-center">
+          <GoogleButton />
+        </div>
+
+        <p className="text-sm mt-4">
           Don&apos;t have an account?{" "}
           <button
             onClick={() => router.push("/auth/signup")}
